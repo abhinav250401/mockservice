@@ -1,0 +1,4 @@
+server:
+  servlet:
+    context-path: /mock-studio
+  port: 8080

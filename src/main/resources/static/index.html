@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiremock UI Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 style="color: var(--primary);">Wiremock Studio</h1>
+            <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your API stubs efficiently</p>
+        </div>
+        <div id="serverStatus" class="status-badge running" onclick="toggleServerStatus()" style="cursor: pointer;" title="Click to toggle simulation">
+            <span class="dot"></span>
+            <span id="serverUrl">Wiremock Server</span>
+            <span id="serverText">(Running)</span>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('manage')">View / Edit Stubs</button>
+        <button class="tab-btn" onclick="switchTab('create')">Create Stubs</button>
+    </div>
+
+    <div id="manageTab" class="tab-pane active">
+        <div class="card">
+            <div class="filters">
+                <select id="filterType" onchange="renderTable()" style="width: 200px;">
+                    <option value="ALL">All Methods</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+                <select id="filterStatus" onchange="renderTable()" style="width: 200px;">
+                    <option value="ALL">All Statuses</option>
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                </select>
+            </div>
+
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Method</th>
+                        <th>URL Path</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody id="stubsTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="createTab" class="tab-pane">
+
+        <div class="card ai-section">
+            <h3 style="margin-bottom: 10px;">✨ Create with Spring AI</h3>
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Describe the stub you want, and AI will configure the form below.</p>
+            <div style="display: flex; gap: 10px;">
+                <textarea id="aiPrompt" style="min-height: 50px; margin-bottom: 0;" placeholder="e.g., Create a POST request to /api/users that returns a 201 status with a 2-second delay..."></textarea>
+                <button class="btn btn-primary" onclick="simulateAI()" style="white-space: nowrap;">Generate Auto-Stub</button>
+            </div>
+        </div>
+
+        <div class="create-grid">
+            <div class="card">
+                <h3>Manual Configuration</h3>
+                <form id="createForm" style="margin-top: 15px;">
+
+                    <div class="section-box">
+                        <div class="section-title">Incoming Request Matcher</div>
+                        <div style="display: flex; gap: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>Method</label>
+                                <select id="c_method" oninput="updateLivePreview()">
+                                    <option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex: 3;">
+                                <label>URL Path Match</label>
+                                <input type="text" id="c_url" placeholder="/api/example" oninput="updateLivePreview()" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Headers (JSON Key-Value)</label>
+                            <textarea id="c_reqHeaders" placeholder='{"Authorization": "Bearer token"}' oninput="updateLivePreview()"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="section-box">
+                        <div class="section-title">Outgoing Response</div>
+                        <div style="display: flex; gap: 15px;">
+                            <div class="form-group" style="flex: 1;">
+                                <label>HTTP Status</label>
+                                <input type="number" id="c_status" value="200" oninput="updateLivePreview()" required>
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label>Delay (ms)</label>
+                                <input type="number" id="c_delay" value="0" oninput="updateLivePreview()">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Response Headers (JSON)</label>
+                            <textarea id="c_resHeaders" placeholder='{"Content-Type": "application/json"}' oninput="updateLivePreview()"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Response Body (JSON or String)</label>
+                            <textarea id="c_body" placeholder='{"message": "Success"}' oninput="updateLivePreview()" style="min-height: 120px;"></textarea>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary" style="width: 100%;" onclick="createStub()">Create Stub Configuration</button>
+                </form>
+            </div>
+
+            <div class="card" style="padding: 0; border: none; background: transparent;">
+                <h3 style="margin-bottom: 15px;">Live JSON Preview</h3>
+                <div id="liveJsonPreview" class="json-preview">
+                    // Start typing to see Wiremock JSON...
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="stubModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 id="modalTitle">View Stub</h2>
+            <button class="close-btn" onclick="closeModal('stubModal')">&times;</button>
+        </div>
+
+        <form id="modalForm">
+            <input type="hidden" id="m_id">
+            <div class="section-box">
+                <div class="section-title">Request</div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;">
+                        <label>Method</label>
+                        <select id="m_method"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option></select>
+                    </div>
+                    <div class="form-group" style="flex: 3;">
+                        <label>URL Path</label>
+                        <input type="text" id="m_url">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Headers (JSON)</label>
+                    <textarea id="m_reqHeaders"></textarea>
+                </div>
+            </div>
+
+            <div class="section-box">
+                <div class="section-title">Response</div>
+                <div style="display: flex; gap: 15px;">
+                    <div class="form-group" style="flex: 1;"><label>Status</label><input type="number" id="m_status"></div>
+                    <div class="form-group" style="flex: 1;"><label>Delay (ms)</label><input type="number" id="m_delay"></div>
+                </div>
+                <div class="form-group"><label>Headers (JSON)</label><textarea id="m_resHeaders"></textarea></div>
+                <div class="form-group"><label>Body</label><textarea id="m_body"></textarea></div>
+            </div>
+
+            <div id="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-outline" onclick="closeModal('stubModal')">Cancel</button>
+                <button type="button" class="btn btn-primary" id="modalSaveBtn" onclick="saveEditedStub()">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="jsonModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Raw Wiremock JSON</h2>
+            <button class="close-btn" onclick="closeModal('jsonModal')">&times;</button>
+        </div>
+        <div id="jsonModalContent" class="json-preview"></div>
+    </div>
+</div>
+<footer>
+    Developed by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank"> @Abhinav Pandey</a>
+</footer>
+<div id="toast-container"></div>
+<script src="script.js"></script>
+</body>
+</html>
