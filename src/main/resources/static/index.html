@@ -3,194 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wiremock UI Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Mock Studio | Boot Sequence</title>
+    <style>
+        :root {
+            --bg-color: #2b2b2b;
+            --text-main: #a9b7c6;
+            --text-highlight: #cc7832;
+            --text-string: #6a8759;
+            --text-info: #6897bb;
+            --text-error: #ff6b68;
+            --text-success: #629755;
+            --font-family: 'Consolas', 'Courier New', monospace;
+        }
 
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            font-size: 14px;
+            padding: 15px;
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        #terminal {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .line {
+            margin: 2px 0;
+            white-space: pre-wrap;
+            line-height: 1.4;
+        }
+
+        .ascii-art {
+            color: var(--text-success);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .log-timestamp { color: var(--text-info); margin-right: 10px; }
+        .log-level { color: var(--text-highlight); margin-right: 10px; font-weight: bold; }
+        .log-thread { color: var(--text-main); margin-right: 10px; }
+        .log-class { color: var(--text-info); margin-right: 10px; }
+
+        .input-line {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+
+        .prompt { margin-right: 10px; color: var(--text-highlight); font-weight: bold; }
+
+        input {
+            background: transparent;
+            border: none;
+            color: var(--text-success);
+            font-family: var(--font-family);
+            font-size: 14px;
+            outline: none;
+            flex-grow: 1;
+            padding: 0;
+            font-weight: bold;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Blinking cursor for the loader */
+        .cursor-blink {
+            animation: blink 1s step-end infinite;
+        }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        footer {
+            margin-top: 40px;
+            border-top: 1px dashed #555;
+            padding-top: 10px;
+            color: #777;
+        }
+
+        footer a {
+            color: var(--text-info);
+            text-decoration: none;
+        }
+        
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div>
-            <h1 style="color: var(--primary);">Wiremock Studio</h1>
-            <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your API stubs efficiently</p>
+    <div id="terminal">
+        <div id="boot-sequence"></div>
+        
+        <div id="login-container" class="input-line hidden">
+            <span class="prompt">Enter Username:</span>
+            <input type="text" id="username" autocomplete="off" spellcheck="false">
         </div>
-        <div id="serverStatus" class="status-badge running" onclick="toggleServerStatus()" style="cursor: pointer;" title="Click to toggle simulation">
-            <span class="dot"></span>
-            <span id="serverUrl">Wiremock Server</span>
-            <span id="serverText">(Running)</span>
+
+        <div id="password-container" class="input-line hidden">
+            <span class="prompt">Enter Secret Key:</span>
+            <input type="password" id="password" autocomplete="off">
         </div>
+
+        <div id="auth-loader" class="line hidden"></div>
+
+        <footer>
+            <span class="log-timestamp" id="footer-time"></span>  INFO --- [  main] c.m.s.SystemFooter : System built and maintained by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank">@Abhinav Pandey</a>
+        </footer>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('manage')">View / Edit Stubs</button>
-        <button class="tab-btn" onclick="switchTab('create')">Create Stubs</button>
-    </div>
+    <script>
+        const bootSequenceDiv = document.getElementById('boot-sequence');
+        const loginContainer = document.getElementById('login-container');
+        const passwordContainer = document.getElementById('password-container');
+        const authLoader = document.getElementById('auth-loader');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        
+        let currentUsername = '';
+        function getLogTime() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
+        }
 
-    <div id="manageTab" class="tab-pane active">
-        <div class="card">
-            <div class="filters">
-                <select id="filterType" onchange="renderTable()" style="width: 200px;">
-                    <option value="ALL">All Methods</option>
-                    <option value="GET">GET</option>
-                    <option value="POST">POST</option>
-                    <option value="PUT">PUT</option>
-                    <option value="DELETE">DELETE</option>
-                </select>
-                <select id="filterStatus" onchange="renderTable()" style="width: 200px;">
-                    <option value="ALL">All Statuses</option>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                </select>
-            </div>
+        setInterval(() => {
+            document.getElementById('footer-time').innerText = getLogTime();
+        }, 100);
 
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                    <tr>
-                        <th>Method</th>
-                        <th>URL Path</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody id="stubsTableBody">
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+        const asciiBanner = `
+:::'###::::'########::'####::::'########::'#######::'########:::'######:::'########:
+::'## ##::: ##.... ##:. ##::::: ##.....::'##.... ##: ##.... ##:'##... ##:: ##.....::
+:'##:. ##:: ##:::: ##:: ##::::: ##::::::: ##:::: ##: ##:::: ##: ##:::..::: ##:::::::
+'##:::. ##: ########::: ##::::: ######::: ##:::: ##: ########:: ##::'####: ######:::
+ #########: ##.....:::: ##::::: ##...:::: ##:::: ##: ##.. ##::: ##::: ##:: ##...::::
+ ##.... ##: ##::::::::: ##::::: ##::::::: ##:::: ##: ##::. ##:: ##::: ##:: ##:::::::
+ ##:::: ##: ##::::::::'####:::: ##:::::::. #######:: ##:::. ##:. ######::: ########:
+..:::::..::..:::::::::....:::::..:::::::::.......:::..:::::..:::......::::........::
+`;
 
-    <div id="createTab" class="tab-pane">
+        const bootLogs = [
+            "Initializing API Simulation Environment v1.0...",
+            "[Core] -> Mounting In-Memory State Machine for scenario tracking",
+            "[Network] -> Dynamic Spring Boot Proxy Controller Active",
+            "[Engine] -> Embedded WireMock Engine linked to port 8089",
+            "[System] -> Environment ready for simulated payloads.",
+            "WARNING: Trying to access dashboard. Credentials required."
+        ];
 
-        <div class="card ai-section">
-            <h3 style="margin-bottom: 10px;">✨ Create with Spring AI</h3>
-            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 15px;">Describe the stub you want, and AI will configure the form below.</p>
-            <div style="display: flex; gap: 10px;">
-                <textarea id="aiPrompt" style="min-height: 50px; margin-bottom: 0;" placeholder="e.g., Create a POST request to /api/users that returns a 201 status with a 2-second delay..."></textarea>
-                <button class="btn btn-primary" onclick="simulateAI()" style="white-space: nowrap;">Generate Auto-Stub</button>
-            </div>
-        </div>
+        function createLogLine(msg) {
+            return `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level">INFO</span> <span class="log-thread">--- [           main]</span> <span class="log-class">project.mockservice.Application</span>    : ${msg}`;
+        }
 
-        <div class="create-grid">
-            <div class="card">
-                <h3>Manual Configuration</h3>
-                <form id="createForm" style="margin-top: 15px;">
+        async function runBootSequence() {
+            const bannerDiv = document.createElement('div');
+            bannerDiv.className = 'line ascii-art';
+            bannerDiv.textContent = asciiBanner;
+            bootSequenceDiv.appendChild(bannerDiv);
 
-                    <div class="section-box">
-                        <div class="section-title">Incoming Request Matcher</div>
-                        <div style="display: flex; gap: 15px;">
-                            <div class="form-group" style="flex: 1;">
-                                <label>Method</label>
-                                <select id="c_method" oninput="updateLivePreview()">
-                                    <option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option>
-                                </select>
-                            </div>
-                            <div class="form-group" style="flex: 3;">
-                                <label>URL Path Match</label>
-                                <input type="text" id="c_url" placeholder="/api/example" oninput="updateLivePreview()" required>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Headers (JSON Key-Value)</label>
-                            <textarea id="c_reqHeaders" placeholder='{"Authorization": "Bearer token"}' oninput="updateLivePreview()"></textarea>
-                        </div>
-                    </div>
 
-                    <div class="section-box">
-                        <div class="section-title">Outgoing Response</div>
-                        <div style="display: flex; gap: 15px;">
-                            <div class="form-group" style="flex: 1;">
-                                <label>HTTP Status</label>
-                                <input type="number" id="c_status" value="200" oninput="updateLivePreview()" required>
-                            </div>
-                            <div class="form-group" style="flex: 1;">
-                                <label>Delay (ms)</label>
-                                <input type="number" id="c_delay" value="0" oninput="updateLivePreview()">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label>Response Headers (JSON)</label>
-                            <textarea id="c_resHeaders" placeholder='{"Content-Type": "application/json"}' oninput="updateLivePreview()"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Response Body (JSON or String)</label>
-                            <textarea id="c_body" placeholder='{"message": "Success"}' oninput="updateLivePreview()" style="min-height: 120px;"></textarea>
-                        </div>
-                    </div>
+            for (let i = 0; i < bootLogs.length; i++) {
+                await new Promise(r => setTimeout(r, Math.random() * 150 + 50)); // Random delay between 50-200ms
+                
+                const line = document.createElement('div');
+                line.className = 'line';
+                if(i === bootLogs.length - 1) {
+                    line.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-error)">WARN</span> <span class="log-thread">--- [  nio-8080-exec-1]</span> <span class="log-class">p.m.security.AuthInterceptor</span>   : <span style="color:var(--text-error)">${bootLogs[i]}</span>`;
+                } else {
+                    line.innerHTML = createLogLine(bootLogs[i]);
+                }
+                bootSequenceDiv.appendChild(line);
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+            setTimeout(() => {
+                loginContainer.classList.remove('hidden');
+                usernameInput.focus();
+            }, 500);
+        }
+        document.addEventListener('click', () => {
+            if (!loginContainer.classList.contains('hidden')) usernameInput.focus();
+            if (!passwordContainer.classList.contains('hidden')) passwordInput.focus();
+        });
 
-                    <button type="button" class="btn btn-primary" style="width: 100%;" onclick="createStub()">Create Stub Configuration</button>
-                </form>
-            </div>
+        usernameInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                currentUsername = this.value.trim();
+                this.disabled = true;
+                
+                loginContainer.classList.add('hidden');
+                const logDiv = document.createElement('div');
+                logDiv.className = 'line';
+                logDiv.innerHTML = createLogLine(`Authenticating principal: ${currentUsername}`);
+                bootSequenceDiv.appendChild(logDiv);
 
-            <div class="card" style="padding: 0; border: none; background: transparent;">
-                <h3 style="margin-bottom: 15px;">Live JSON Preview</h3>
-                <div id="liveJsonPreview" class="json-preview">
-                    // Start typing to see Wiremock JSON...
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+                passwordContainer.classList.remove('hidden');
+                passwordInput.focus();
+            }
+        });
+        // Handle Password Enter and API Call
+        passwordInput.addEventListener('keydown', async function(e) {
+            if (e.key === 'Enter' && this.value.trim() !== '') {
+                const password = this.value;
+                this.disabled = true;
+                passwordContainer.classList.add('hidden');
 
-<div id="stubModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2 id="modalTitle">View Stub</h2>
-            <button class="close-btn" onclick="closeModal('stubModal')">&times;</button>
-        </div>
+                // 1. Show the loader
+                authLoader.classList.remove('hidden');
+                authLoader.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level">INFO</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : Verifying credentials <span class="cursor-blink">...</span>`;
+                window.scrollTo(0, document.body.scrollHeight);
 
-        <form id="modalForm">
-            <input type="hidden" id="m_id">
-            <div class="section-box">
-                <div class="section-title">Request</div>
-                <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex: 1;">
-                        <label>Method</label>
-                        <select id="m_method"><option value="GET">GET</option><option value="POST">POST</option><option value="PUT">PUT</option><option value="DELETE">DELETE</option></select>
-                    </div>
-                    <div class="form-group" style="flex: 3;">
-                        <label>URL Path</label>
-                        <input type="text" id="m_url">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Headers (JSON)</label>
-                    <textarea id="m_reqHeaders"></textarea>
-                </div>
-            </div>
+                try {
+                    const response = await fetch('/mock-studio/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username: currentUsername, secretCode: password })
+                    });
 
-            <div class="section-box">
-                <div class="section-title">Response</div>
-                <div style="display: flex; gap: 15px;">
-                    <div class="form-group" style="flex: 1;"><label>Status</label><input type="number" id="m_status"></div>
-                    <div class="form-group" style="flex: 1;"><label>Delay (ms)</label><input type="number" id="m_delay"></div>
-                </div>
-                <div class="form-group"><label>Headers (JSON)</label><textarea id="m_resHeaders"></textarea></div>
-                <div class="form-group"><label>Body</label><textarea id="m_body"></textarea></div>
-            </div>
+                    const data = await response.json();
 
-            <div id="modalFooter" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
-                <button type="button" class="btn btn-outline" onclick="closeModal('stubModal')">Cancel</button>
-                <button type="button" class="btn btn-primary" id="modalSaveBtn" onclick="saveEditedStub()">Save Changes</button>
-            </div>
-        </form>
-    </div>
-</div>
+                    // 2. Hide loader before showing result
+                    authLoader.classList.add('hidden');
 
-<div id="jsonModal" class="modal-overlay">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h2>Raw Wiremock JSON</h2>
-            <button class="close-btn" onclick="closeModal('jsonModal')">&times;</button>
-        </div>
-        <div id="jsonModalContent" class="json-preview"></div>
-    </div>
-</div>
-<footer>
-    Developed by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank"> @Abhinav Pandey</a>
-</footer>
-<div id="toast-container"></div>
-<script src="script.js"></script>
+                    if (response.ok) {
+                        // 3. Append SUCCESS permanently to the terminal
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'line';
+                        successDiv.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-success)">INFO</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : <span style="color:var(--text-success)">Access Granted. 200 OK. Redirecting to dashboard...</span>`;
+                        bootSequenceDiv.appendChild(successDiv);
+
+                        sessionStorage.setItem('mockStudioAuth', 'granted');
+
+                        setTimeout(() => {
+                            window.location.href = 'dashboard.html';
+                        }, 1200);
+                    } else {
+                        throw new Error(data.message || "Authentication Failed");
+                    }
+                } catch (err) {
+                    // 2. Hide loader before showing result
+                    authLoader.classList.add('hidden');
+
+                    // 3. Append ERROR permanently to the terminal
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'line';
+                    errorDiv.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-error)">ERROR</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : <span style="color:var(--text-error)">401 UNAUTHORIZED - ${err.message}. Connection Reset.</span>`;
+                    bootSequenceDiv.appendChild(errorDiv);
+                    window.scrollTo(0, document.body.scrollHeight);
+
+                    // 4. Reset the inputs for another attempt
+                    setTimeout(() => {
+                        usernameInput.disabled = false;
+                        passwordInput.disabled = false;
+                        usernameInput.value = '';
+                        passwordInput.value = '';
+                        loginContainer.classList.remove('hidden');
+                        usernameInput.focus();
+                    }, 1000);
+                }
+            }
+        });
+        window.onload = runBootSequence;
+    </script>
 </body>
 </html>

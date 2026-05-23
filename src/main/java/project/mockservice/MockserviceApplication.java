@@ -1,11 +1,11 @@
 package project.mockservice;
 
-import org.hibernate.annotations.processing.Exclude;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration;
-
-@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
+@SpringBootApplication
+@EnableMongoAuditing
 public class MockserviceApplication {
 
     public static void main(String[] args) {

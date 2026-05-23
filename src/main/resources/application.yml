@@ -2,3 +2,15 @@ server:
   servlet:
     context-path: /mock-studio
   port: 8080
+
+wiremock:
+  server:
+    host: localhost
+    port: 8089
+spring:
+  application:
+    name: wiremock-studio
+
+  mongodb:
+    uri: ${MONGO_DB_URI}
+    database: ${MONGO_DATABASE}
