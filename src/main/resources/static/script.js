@@ -479,7 +479,7 @@ function generateCurlModal(id) {
     const baseUrl = "http://localhost:8080";
 
     // Begin string construction with core pieces
-    let curlCmd = `curl -X ${stub.method} "${baseUrl}${stub.url}"`;
+    let curlCmd = `curl -X ${stub.method} "${baseUrl}${stub.urlPath}"`;
 
     // Append headers formatting if they exist inside the stub
     if (stub.reqHeaders) {

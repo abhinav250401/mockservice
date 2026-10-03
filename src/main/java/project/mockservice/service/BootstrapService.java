@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Service;
 import project.mockservice.dto.StubMapper;
 import project.mockservice.entity.Stubs;
+import project.mockservice.enums.StubStatus;
 import project.mockservice.repository.StubRepository;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public class BootstrapService implements ApplicationListener<ApplicationReadyEve
         try{
             log.info("================ Clearing WIREMOCK Registry ===================");
             WireMock.reset();
-            List<Stubs> stubs = stubRepository.findAll();
+            List<Stubs> stubs = stubRepository.findAllByStatus(StubStatus.ACTIVE);
             log.info("========= Count of stubs ============ :: {}", stubs.size());
             if(stubs.isEmpty()){
                 log.info("============= No stubs found in database =============");

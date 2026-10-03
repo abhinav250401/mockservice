@@ -3,273 +3,319 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mock Studio | Boot Sequence</title>
+    <title>Mock Studio | Login</title>
     <style>
         :root {
-            --bg-color: #2b2b2b;
-            --text-main: #a9b7c6;
-            --text-highlight: #cc7832;
-            --text-string: #6a8759;
-            --text-info: #6897bb;
-            --text-error: #ff6b68;
-            --text-success: #629755;
-            --font-family: 'Consolas', 'Courier New', monospace;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-color: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --danger-text: #991b1b;
+            --success-text: #166534;
+            --success-bg: #dcfce7;
         }
 
-        body, html {
-            height: 100%;
-            margin: 0;
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
-            font-family: var(--font-family);
-            font-size: 14px;
-            padding: 15px;
-            box-sizing: border-box;
-            overflow-x: hidden;
-        }
-
-        #terminal {
+            line-height: 1.5;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            width: 100%;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .line {
-            margin: 2px 0;
-            white-space: pre-wrap;
-            line-height: 1.4;
-        }
-
-        .ascii-art {
-            color: var(--text-success);
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .log-timestamp { color: var(--text-info); margin-right: 10px; }
-        .log-level { color: var(--text-highlight); margin-right: 10px; font-weight: bold; }
-        .log-thread { color: var(--text-main); margin-right: 10px; }
-        .log-class { color: var(--text-info); margin-right: 10px; }
-
-        .input-line {
-            display: flex;
             align-items: center;
-            margin-top: 5px;
+            justify-content: center;
         }
 
-        .prompt { margin-right: 10px; color: var(--text-highlight); font-weight: bold; }
+        .login-wrapper {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .brand h1 {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .brand p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-top: 4px;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 32px;
+            border: 1px solid var(--border-color);
+        }
+
+        .login-card h2 {
+            font-size: 1.25rem;
+            margin-bottom: 24px;
+            color: var(--text-main);
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
 
         input {
-            background: transparent;
-            border: none;
-            color: var(--text-success);
-            font-family: var(--font-family);
-            font-size: 14px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
             outline: none;
-            flex-grow: 1;
-            padding: 0;
-            font-weight: bold;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
         }
 
-        .hidden { display: none !important; }
-
-        /* Blinking cursor for the loader */
-        .cursor-blink {
-            animation: blink 1s step-end infinite;
+        .btn-primary {
+            width: 100%;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.95rem;
+            background: var(--primary);
+            color: white;
+            transition: background 0.2s;
+            margin-top: 8px;
         }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .divider span { padding: 0 12px; }
+
+        .signup-link {
+            text-align: center;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .signup-link a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .signup-link a:hover { text-decoration: underline; }
+
+        .message {
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: var(--danger-text);
+            border: 1px solid #fecaca;
+            display: block;
+        }
+
+        .message.success {
+            background: var(--success-bg);
+            color: var(--success-text);
+            border: 1px solid #bbf7d0;
+            display: block;
+        }
 
         footer {
-            margin-top: 40px;
-            border-top: 1px dashed #555;
-            padding-top: 10px;
-            color: #777;
+            text-align: center;
+            padding: 24px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
         }
 
         footer a {
-            color: var(--text-info);
+            color: var(--primary);
             text-decoration: none;
         }
-        
-        footer a:hover {
-            text-decoration: underline;
-        }
+
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
 
-    <div id="terminal">
-        <div id="boot-sequence"></div>
-        
-        <div id="login-container" class="input-line hidden">
-            <span class="prompt">Enter Username:</span>
-            <input type="text" id="username" autocomplete="off" spellcheck="false">
+    <div class="login-wrapper">
+        <div class="brand">
+            <h1>Mock Studio</h1>
+            <p>API Simulation & Stub Management</p>
         </div>
 
-        <div id="password-container" class="input-line hidden">
-            <span class="prompt">Enter Secret Key:</span>
-            <input type="password" id="password" autocomplete="off">
+        <div class="login-card">
+            <h2 id="formTitle">Sign in to your account</h2>
+
+            <div id="messageBox" class="message"></div>
+
+            <form id="authForm" onsubmit="return false;">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" placeholder="Enter your username" autocomplete="off" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="secretCode">Secret Key</label>
+                    <input type="password" id="secretCode" placeholder="Enter your secret key" required>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn" onclick="handleSubmit()">Sign In</button>
+            </form>
+
+            <div class="divider"><span>OR</span></div>
+
+            <div class="signup-link">
+                <span id="toggleText">Don't have an account? </span>
+                <a id="toggleLink" onclick="toggleMode()">Create one</a>
+            </div>
         </div>
-
-        <div id="auth-loader" class="line hidden"></div>
-
-        <footer>
-            <span class="log-timestamp" id="footer-time"></span>  INFO --- [  main] c.m.s.SystemFooter : System built and maintained by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank">@Abhinav Pandey</a>
-        </footer>
     </div>
 
+    <footer>
+        Built by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank">@Abhinav Pandey</a>
+    </footer>
+
     <script>
-        const bootSequenceDiv = document.getElementById('boot-sequence');
-        const loginContainer = document.getElementById('login-container');
-        const passwordContainer = document.getElementById('password-container');
-        const authLoader = document.getElementById('auth-loader');
+        let isLoginMode = true;
+        const form = document.getElementById('authForm');
         const usernameInput = document.getElementById('username');
-        const passwordInput = document.getElementById('password');
-        
-        let currentUsername = '';
-        function getLogTime() {
-            const now = new Date();
-            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
-        }
+        const secretCodeInput = document.getElementById('secretCode');
+        const submitBtn = document.getElementById('submitBtn');
+        const formTitle = document.getElementById('formTitle');
+        const toggleText = document.getElementById('toggleText');
+        const toggleLink = document.getElementById('toggleLink');
+        const messageBox = document.getElementById('messageBox');
 
-        setInterval(() => {
-            document.getElementById('footer-time').innerText = getLogTime();
-        }, 100);
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            messageBox.className = 'message';
+            messageBox.style.display = 'none';
+            usernameInput.value = '';
+            secretCodeInput.value = '';
 
-        const asciiBanner = `
-:::'###::::'########::'####::::'########::'#######::'########:::'######:::'########:
-::'## ##::: ##.... ##:. ##::::: ##.....::'##.... ##: ##.... ##:'##... ##:: ##.....::
-:'##:. ##:: ##:::: ##:: ##::::: ##::::::: ##:::: ##: ##:::: ##: ##:::..::: ##:::::::
-'##:::. ##: ########::: ##::::: ######::: ##:::: ##: ########:: ##::'####: ######:::
- #########: ##.....:::: ##::::: ##...:::: ##:::: ##: ##.. ##::: ##::: ##:: ##...::::
- ##.... ##: ##::::::::: ##::::: ##::::::: ##:::: ##: ##::. ##:: ##::: ##:: ##:::::::
- ##:::: ##: ##::::::::'####:::: ##:::::::. #######:: ##:::. ##:. ######::: ########:
-..:::::..::..:::::::::....:::::..:::::::::.......:::..:::::..:::......::::........::
-`;
-
-        const bootLogs = [
-            "Initializing API Simulation Environment v1.0...",
-            "[Core] -> Mounting In-Memory State Machine for scenario tracking",
-            "[Network] -> Dynamic Spring Boot Proxy Controller Active",
-            "[Engine] -> Embedded WireMock Engine linked to port 8089",
-            "[System] -> Environment ready for simulated payloads.",
-            "WARNING: Trying to access dashboard. Credentials required."
-        ];
-
-        function createLogLine(msg) {
-            return `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level">INFO</span> <span class="log-thread">--- [           main]</span> <span class="log-class">project.mockservice.Application</span>    : ${msg}`;
-        }
-
-        async function runBootSequence() {
-            const bannerDiv = document.createElement('div');
-            bannerDiv.className = 'line ascii-art';
-            bannerDiv.textContent = asciiBanner;
-            bootSequenceDiv.appendChild(bannerDiv);
-
-
-            for (let i = 0; i < bootLogs.length; i++) {
-                await new Promise(r => setTimeout(r, Math.random() * 150 + 50)); // Random delay between 50-200ms
-                
-                const line = document.createElement('div');
-                line.className = 'line';
-                if(i === bootLogs.length - 1) {
-                    line.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-error)">WARN</span> <span class="log-thread">--- [  nio-8080-exec-1]</span> <span class="log-class">p.m.security.AuthInterceptor</span>   : <span style="color:var(--text-error)">${bootLogs[i]}</span>`;
-                } else {
-                    line.innerHTML = createLogLine(bootLogs[i]);
-                }
-                bootSequenceDiv.appendChild(line);
-                window.scrollTo(0, document.body.scrollHeight);
+            if (isLoginMode) {
+                formTitle.innerText = 'Sign in to your account';
+                submitBtn.innerText = 'Sign In';
+                toggleText.innerText = "Don't have an account? ";
+                toggleLink.innerText = 'Create one';
+            } else {
+                formTitle.innerText = 'Create a new account';
+                submitBtn.innerText = 'Sign Up';
+                toggleText.innerText = 'Already have an account? ';
+                toggleLink.innerText = 'Sign in';
             }
-            setTimeout(() => {
-                loginContainer.classList.remove('hidden');
-                usernameInput.focus();
-            }, 500);
         }
-        document.addEventListener('click', () => {
-            if (!loginContainer.classList.contains('hidden')) usernameInput.focus();
-            if (!passwordContainer.classList.contains('hidden')) passwordInput.focus();
-        });
 
-        usernameInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && this.value.trim() !== '') {
-                currentUsername = this.value.trim();
-                this.disabled = true;
-                
-                loginContainer.classList.add('hidden');
-                const logDiv = document.createElement('div');
-                logDiv.className = 'line';
-                logDiv.innerHTML = createLogLine(`Authenticating principal: ${currentUsername}`);
-                bootSequenceDiv.appendChild(logDiv);
+        function showMessage(text, type) {
+            messageBox.innerText = text;
+            messageBox.className = 'message ' + type;
+        }
 
-                passwordContainer.classList.remove('hidden');
-                passwordInput.focus();
+        async function handleSubmit() {
+            const username = usernameInput.value.trim();
+            const secretCode = secretCodeInput.value.trim();
+
+            if (!username || !secretCode) {
+                showMessage('Please fill in all fields.', 'error');
+                return;
             }
-        });
-        // Handle Password Enter and API Call
-        passwordInput.addEventListener('keydown', async function(e) {
-            if (e.key === 'Enter' && this.value.trim() !== '') {
-                const password = this.value;
-                this.disabled = true;
-                passwordContainer.classList.add('hidden');
 
-                // 1. Show the loader
-                authLoader.classList.remove('hidden');
-                authLoader.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level">INFO</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : Verifying credentials <span class="cursor-blink">...</span>`;
-                window.scrollTo(0, document.body.scrollHeight);
+            submitBtn.disabled = true;
+            submitBtn.innerText = isLoginMode ? 'Signing in...' : 'Creating account...';
 
-                try {
-                    const response = await fetch('/mock-studio/auth/login', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ username: currentUsername, secretCode: password })
-                    });
+            const endpoint = isLoginMode ? '/mock-studio/auth/login' : '/mock-studio/auth/signup';
 
-                    const data = await response.json();
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, secretCode })
+                });
 
-                    // 2. Hide loader before showing result
-                    authLoader.classList.add('hidden');
+                const data = await response.json();
 
-                    if (response.ok) {
-                        // 3. Append SUCCESS permanently to the terminal
-                        const successDiv = document.createElement('div');
-                        successDiv.className = 'line';
-                        successDiv.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-success)">INFO</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : <span style="color:var(--text-success)">Access Granted. 200 OK. Redirecting to dashboard...</span>`;
-                        bootSequenceDiv.appendChild(successDiv);
-
+                if (response.ok) {
+                    if (isLoginMode) {
+                        showMessage('Access granted. Redirecting to dashboard...', 'success');
                         sessionStorage.setItem('mockStudioAuth', 'granted');
-
                         setTimeout(() => {
                             window.location.href = 'dashboard.html';
-                        }, 1200);
+                        }, 800);
+                        return;
                     } else {
-                        throw new Error(data.message || "Authentication Failed");
+                        showMessage(data.message || 'Account created. You can now sign in.', 'success');
+                        setTimeout(() => toggleMode(), 1500);
                     }
-                } catch (err) {
-                    // 2. Hide loader before showing result
-                    authLoader.classList.add('hidden');
-
-                    // 3. Append ERROR permanently to the terminal
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'line';
-                    errorDiv.innerHTML = `<span class="log-timestamp">${getLogTime()}</span>  <span class="log-level" style="color:var(--text-error)">ERROR</span> <span class="log-thread">--- [  nio-8080-exec-2]</span> <span class="log-class">p.m.security.AuthenticationManager</span> : <span style="color:var(--text-error)">401 UNAUTHORIZED - ${err.message}. Connection Reset.</span>`;
-                    bootSequenceDiv.appendChild(errorDiv);
-                    window.scrollTo(0, document.body.scrollHeight);
-
-                    // 4. Reset the inputs for another attempt
-                    setTimeout(() => {
-                        usernameInput.disabled = false;
-                        passwordInput.disabled = false;
-                        usernameInput.value = '';
-                        passwordInput.value = '';
-                        loginContainer.classList.remove('hidden');
-                        usernameInput.focus();
-                    }, 1000);
+                } else {
+                    showMessage(data.message || 'Something went wrong. Please try again.', 'error');
                 }
+            } catch (err) {
+                showMessage('Network error. Could not reach the server.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = isLoginMode ? 'Sign In' : 'Sign Up';
             }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') handleSubmit();
         });
-        window.onload = runBootSequence;
+
+        // Auto-focus username on load
+        window.onload = () => usernameInput.focus();
     </script>
 </body>
 </html>

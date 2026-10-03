@@ -2,6 +2,8 @@ package project.mockservice.controller;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -18,16 +20,22 @@ import java.util.Enumeration;
 import java.util.List;
 
 @RestController
+@RequiredArgsConstructor
 public class ProxyController {
 
-        private final RestTemplate restTemplate = new RestTemplate();
-        private final String WIREMOCK_BASE_URL = "http://localhost:8089";
+        private final RestTemplate restTemplate;
+
+        @Value("${wiremock.server.host}")
+        private String wireMockHost;
+
+        @Value("${wiremock.server.port}")
+        private int wireMockPort;
         @RequestMapping("/mock/**")
         public ResponseEntity<?> proxyRequest(HttpServletRequest request) throws URISyntaxException, IOException {
             String requestUrl = request.getRequestURI();
             String wireMockPath = requestUrl.replaceFirst("^/mock-studio/mock", "");
             String queryString = request.getQueryString();
-            String targetUrl = WIREMOCK_BASE_URL + wireMockPath + (queryString != null ? "?" + queryString : "");
+            String targetUrl = "http://" + wireMockHost + ":" + wireMockPort + wireMockPath + (queryString != null ? "?" + queryString : "");
             HttpHeaders headers = new HttpHeaders();
             Enumeration<String> headerNames = request.getHeaderNames();
             while (headerNames.hasMoreElements()) {
@@ -50,10 +58,10 @@ public class ProxyController {
                         .headers(sanitizeResponseHeaders(response.getHeaders()))
                         .body(response.getBody());
             } catch (HttpStatusCodeException e) {
-                assert e.getResponseHeaders() != null;
+                HttpHeaders errorHeaders = e.getResponseHeaders();
                 return ResponseEntity
                         .status(e.getStatusCode())
-                        .headers(sanitizeResponseHeaders(e.getResponseHeaders()))
+                        .headers(errorHeaders != null ? sanitizeResponseHeaders(errorHeaders) : new HttpHeaders())
                         .body(e.getResponseBodyAsByteArray());
             }
         }

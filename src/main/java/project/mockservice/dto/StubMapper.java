@@ -52,6 +52,8 @@ public class StubMapper {
         doc.setContentType(dto.getContentType() != null ? dto.getContentType() : "application/json");
         doc.setDelayMillis(dto.getDelayMillis());
         doc.setReqBody(dto.getReqBody());
+        doc.setReqHeaders(dto.getReqHeaders());
+        doc.setRespHeaders(dto.getRespHeaders());
         doc.setScenarioName(dto.getScenarioName());
         doc.setRequiredScenarioState(dto.getRequiredScenarioState());
         doc.setNewScenarioState(dto.getNewScenarioState());
@@ -72,12 +74,12 @@ public class StubMapper {
             responseBuilder.withFixedDelay(doc.getDelayMillis());
         }
         MappingBuilder mappingBuilder = buildMappingBuilder(doc);
-        StubMapping mapping = mappingBuilder
-                .willReturn(responseBuilder)
-                .build();
         if (doc.getReqBody() != null && !doc.getReqBody().isBlank()) {
             mappingBuilder.withRequestBody(equalToJson(doc.getReqBody(), true, false));
         }
+        StubMapping mapping = mappingBuilder
+                .willReturn(responseBuilder)
+                .build();
         if (doc.getScenarioName() != null && !doc.getScenarioName().isBlank()) {
             mapping.setScenarioName(doc.getScenarioName());
             String requiredState = (doc.getRequiredScenarioState() != null && !doc.getRequiredScenarioState().isBlank())

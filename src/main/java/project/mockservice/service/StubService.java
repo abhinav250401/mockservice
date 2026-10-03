@@ -10,11 +10,11 @@ import project.mockservice.dto.StubDTO;
 import project.mockservice.dto.StubMapper;
 import project.mockservice.entity.Stubs;
 import project.mockservice.enums.StubStatus;
+import project.mockservice.exception.ResourceNotFoundException;
 import project.mockservice.repository.StubRepository;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -54,7 +54,7 @@ public class StubService {
 
     public void updateStubStatus(String id, StubStatus newStatus) {
         Stubs entity = stubRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stub not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Stub not found with ID: " + id));
         entity.setStatus(newStatus);
         stubRepository.save(entity);
         log.info("Stub {} status updated to {} in MongoDB", id, newStatus);
@@ -83,13 +83,13 @@ public class StubService {
         return stubRepository.findAll()
                 .stream()
                 .map(stubMapper::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
     public void deleteStub(String id) {
         Stubs entity = stubRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stub not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Stub not found with ID: " + id));
 
         stubRepository.deleteById(id);
         log.info("Successfully deleted stub with ID: {} from MongoDB", id);
@@ -109,7 +109,7 @@ public class StubService {
 
     public void updateStub(String id, StubDTO stubDTO) {
         Stubs existingEntity = stubRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Stub not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Stub not found with ID: " + id));
         Stubs updatedEntity = stubMapper.toDocument(stubDTO);
 
 
@@ -145,8 +145,5 @@ public class StubService {
                 log.warn("Stub updated in Mongo, but failed to sync with WireMock registry: {}", e.getMessage());
             }
         }
-
-
-        return;
     }
 }
