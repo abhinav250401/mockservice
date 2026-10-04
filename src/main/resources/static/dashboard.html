@@ -15,17 +15,20 @@
             <h1 style="color: var(--primary);">Mock Studio</h1>
             <p style="color: var(--text-muted); font-size: 0.9rem;">Manage your API stubs efficiently</p>
         </div>
-        <div id="serverStatus" class="status-badge running" onclick="toggleServerStatus()" style="cursor: pointer;" title="Click to toggle simulation">
-            <span class="dot"></span>
-            <span id="serverUrl">Mock Server</span>
-            <span id="serverText">(Running)</span>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div id="serverStatus" class="status-badge running" onclick="toggleServerStatus()" style="cursor: pointer;" title="Click to toggle simulation">
+                <span class="dot"></span>
+                <span id="serverUrl">Mock Server</span>
+                <span id="serverText">(Running)</span>
+            </div>
+            <button class="btn btn-outline" onclick="logout()" style="font-size: 0.85rem; padding: 6px 14px; border-color: #ef4444; color: #ef4444;">Logout</button>
         </div>
     </div>
 
     <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('manage')">View / Edit Stubs</button>
         <button class="tab-btn" onclick="switchTab('create')">Create Stubs</button>
-        <a href="tryitout.html" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">Try It Out</a>
+        <a href="tryitout.html" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px; color: var(--text-muted); font-family: inherit;">Try It Out</a>
     </div>
 
     <div id="manageTab" class="tab-pane active">

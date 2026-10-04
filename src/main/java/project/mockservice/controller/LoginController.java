@@ -70,6 +70,16 @@ public class LoginController {
                 "message", "Access Denied. Protocol breach detected."
         ));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest httpRequest) {
+        SecurityContextHolder.clearContext();
+        var session = httpRequest.getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
+    }
 }
 @Data
 @AllArgsConstructor

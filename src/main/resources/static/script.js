@@ -567,3 +567,16 @@ function copyStubUrl(urlPath) {
     });
 }
 
+async function logout() {
+    try {
+        await fetch('/mock-studio/auth/logout', {
+            method: 'POST',
+            credentials: 'same-origin'
+        });
+    } catch (e) {
+        console.error('Logout request failed:', e);
+    }
+    sessionStorage.removeItem('mockStudioAuth');
+    window.location.href = 'index.html';
+}
+
