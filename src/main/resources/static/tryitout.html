@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try It Out - Mock Studio</title>
+    <link rel="stylesheet" href="tryitout.css">
+</head>
+<body>
+
+<div class="top-bar">
+    <h1>Mock Studio - Try It Out</h1>
+    <a href="dashboard.html" class="back-link">&#8592; Back to Dashboard</a>
+</div>
+
+<div class="main-layout">
+    <!-- Left Sidebar: Stub Collections -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>Collections</h3>
+            <button class="refresh-btn" onclick="loadStubs()" title="Refresh stubs">&#8635;</button>
+        </div>
+        <div class="sidebar-search">
+            <input type="text" id="sidebarSearch" placeholder="Search stubs..." oninput="renderSidebar()">
+        </div>
+        <div class="sidebar-list" id="sidebarList">
+            <!-- Populated by JS -->
+        </div>
+    </div>
+
+    <!-- Right Content Area -->
+    <div class="content-area">
+
+        <!-- Empty State (shown when no stub selected) -->
+        <div id="emptyState" class="empty-state">
+            <div class="icon">&#9881;</div>
+            <h3>Select a Stub to Try It Out</h3>
+            <p>Choose a stub from the left sidebar to send requests, view responses, and copy cURL commands.</p>
+        </div>
+
+        <!-- Active Content (hidden until stub is selected) -->
+        <div id="contentState" style="display: none; flex-direction: column; flex: 1; overflow: hidden;">
+
+            <!-- URL Bar -->
+            <div class="url-bar">
+                <select class="method-select" id="reqMethod" onchange="updateCurl()">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="OPTIONS">OPTIONS</option>
+                    <option value="HEAD">HEAD</option>
+                </select>
+                <input type="text" class="url-input" id="reqUrl" placeholder="Enter request URL" oninput="updateCurl()">
+                <button class="send-btn" id="sendBtn" onclick="sendRequest()">Send</button>
+            </div>
+
+            <!-- Request / Response Split -->
+            <div class="req-res-split">
+
+                <!-- Request Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Request</h3>
+                    </div>
+                    <div class="panel-tabs">
+                        <button class="panel-tab req-tab active" onclick="switchRequestTab('headers')">Headers</button>
+                        <button class="panel-tab req-tab" onclick="switchRequestTab('body')">Body</button>
+                        <button class="panel-tab req-tab" onclick="switchRequestTab('curl')">cURL</button>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Headers Tab -->
+                        <div id="reqTab-headers" class="req-tab-content" style="display: block;">
+                            <table class="headers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Key</th>
+                                        <th>Value</th>
+                                        <th style="width: 40px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reqHeadersBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                            <button class="add-header-btn" onclick="addHeaderRow('', ''); updateCurl();">+ Add Header</button>
+                        </div>
+
+                        <!-- Body Tab -->
+                        <div id="reqTab-body" class="req-tab-content" style="display: none;">
+                            <textarea class="req-textarea" id="reqBody" placeholder="Enter request body (JSON)..." oninput="updateCurl()"></textarea>
+                        </div>
+
+                        <!-- cURL Tab -->
+                        <div id="reqTab-curl" class="req-tab-content" style="display: none;">
+                            <div class="curl-section">
+                                <div class="curl-box" id="curlOutput"># Select a stub or enter a URL to generate cURL</div>
+                                <button class="curl-copy-btn" onclick="copyCurl()">Copy cURL Command</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Response Panel -->
+                <div class="panel">
+                    <div class="panel-header">
+                        <h3>Response</h3>
+                    </div>
+                    <div class="response-meta" id="responseMeta" style="display: none;">
+                        <span class="status-code" id="resStatus">200</span>
+                        <span class="response-time" id="resDuration">0 ms</span>
+                    </div>
+                    <div class="panel-tabs">
+                        <button class="panel-tab res-tab active" onclick="switchResponseTab('body')">Body</button>
+                        <button class="panel-tab res-tab" onclick="switchResponseTab('headers')">Headers</button>
+                    </div>
+                    <div class="panel-body">
+                        <!-- Response Body Tab -->
+                        <div id="resTab-body" class="res-tab-content" style="display: block;">
+                            <div class="response-body-content" id="resBody">Response will appear here after sending a request...</div>
+                        </div>
+
+                        <!-- Response Headers Tab -->
+                        <div id="resTab-headers" class="res-tab-content" style="display: none;">
+                            <div class="response-headers-list" id="resHeadersList">
+                                <!-- Populated after request -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>
+    Developed by <a href="https://www.linkedin.com/in/er-abhinav-pandey/" target="_blank">@Abhinav Pandey</a>
+</footer>
+
+<div id="toast-container"></div>
+<script src="tryitout.js"></script>
+</body>
+</html>
